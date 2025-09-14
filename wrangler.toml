@@ -13,4 +13,12 @@ routes = [
 VITE_ENV = "development"
 VITE_BUILD = "dev-cloudflare"
 
+[env.prod]
+name = "hub-sso-prod"
+routes = [
+  { pattern = "sso.jeivian.com", custom_domain = true }
+]
 
+[env.prod.vars]
+VITE_ENV = "production"
+VITE_BUILD = "prod-cloudflare"

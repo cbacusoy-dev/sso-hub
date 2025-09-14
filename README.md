@@ -42,26 +42,12 @@
 
 ## 🚀 Inicio rápido
 
-### 1. **Desarrollo local**
+### 1. **URLs disponibles**
 
-```bash
-# Clonar repositorio
-git clone <repo-url>
-cd hub-sso
+El Hub SSO está deployado en **Cloudflare Workers** con dos ambientes:
 
-# Instalar dependencias
-npm install
-
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus credenciales de Supabase
-
-# Modo TESTING (UI completa para debugging)
-VITE_ENV=testing npm run dev
-
-# Modo DEVELOPMENT (auto-redirect como producción)
-VITE_ENV=development npm run dev
-```
+- **🖥️ Desarrollo**: `https://sso-dev.jeivian.com` (permite localhost)
+- **🔒 Producción**: `https://sso.jeivian.com` (solo HTTPS)
 
 ### 2. **Integrar en tu app**
 
@@ -114,34 +100,35 @@ handleSSOReturn()
 El Hub SSO tiene **3 modos** según la variable `VITE_ENV`:
 
 ### 🔄 **DEVELOPMENT** (Auto-redirect)
-```bash
-VITE_ENV=development npm run dev
+```
+https://sso-dev.jeivian.com
 ```
 - ✅ **Auto-redirige** automáticamente
 - ✅ **Solo banner** de carga
 - ✅ **Permite HTTP** localhost
 - ✅ **Fallback**: `http://localhost:3000`
-- 🎯 **Uso**: Deploy de desarrollo
+- 🖥️ **Entorno de desarrollo**
 
 ### 🚀 **PRODUCTION** (Auto-redirect)
-```bash
-VITE_ENV=production npm run build
+```
+https://sso.jeivian.com
 ```
 - ✅ **Auto-redirige** automáticamente
 - ✅ **Solo banner** de carga
-- ❌ **Solo HTTPS** (seguridad)
+- ✅ **Solo HTTPS** (seguridad)
 - ✅ **Fallback**: `https://app.jeivian.com`
-- 🎯 **Uso**: Deploy de producción
+- 🔒 **Entorno de producción**
 
 ### 🧪 **TESTING** (Manual)
 ```bash
+# Solo para desarrollo local
 VITE_ENV=testing npm run dev
 ```
 - ❌ **NO auto-redirige** (manual)
 - ✅ **UI completa** con botones
 - ✅ **Logs en pantalla** para debugging
 - ✅ **Todas las funciones** visibles
-- 🎯 **Uso**: Desarrollo y debugging local
+- 🔬 **Solo disponible localmente**
 
 ## 🔗 URLs y parámetros
 
@@ -155,9 +142,9 @@ https://sso-dev.jeivian.com/?target=http://localhost:3000
 https://sso-dev.jeivian.com/?logout=true&target=http://localhost:3000/login
 ```
 
-### **Modo testing (debugging)**
+### **Debugging en desarrollo**
 ```
-https://sso-dev.jeivian.com/?target=http://localhost:3000&env=testing
+https://sso-dev.jeivian.com/?target=http://localhost:3000
 ```
 
 ### **Parámetros disponibles**
@@ -166,7 +153,6 @@ https://sso-dev.jeivian.com/?target=http://localhost:3000&env=testing
 |-----------|-------------|---------|
 | `target` | URL de retorno después del login | `http://localhost:3000` |
 | `logout` | Cerrar sesión antes de proceder | `true` |
-| `env` | Forzar modo específico | `testing` |
 
 ## 🔒 Seguridad
 
@@ -211,20 +197,20 @@ hub-sso/
 └── README.md            # Esta documentación
 ```
 
-### **Scripts disponibles**
-```bash
-npm run dev          # Desarrollo local
-npm run build        # Build para producción
-npm run preview      # Preview del build
-```
+### **Ambientes deployados**
+- **🖥️ Desarrollo**: `sso-dev.jeivian.com` - Permite localhost para testing
+- **🔒 Producción**: `sso.jeivian.com` - Solo HTTPS para apps en producción
 
-### **Variables de entorno**
-```bash
-# .env
-VITE_SUPABASE_URL=https://login.jeivian.com
-VITE_SUPABASE_ANON=tu_anon_key_aqui
-VITE_ENV=testing
-VITE_BUILD=local
+### **Variables de entorno en Cloudflare**
+```toml
+# wrangler.toml
+[env.dev.vars]
+VITE_ENV = "development"
+VITE_BUILD = "dev-cloudflare"
+
+[env.prod.vars]  
+VITE_ENV = "production"
+VITE_BUILD = "prod-cloudflare"
 ```
 
 ## 🚀 Deploy
@@ -256,7 +242,14 @@ El Hub SSO es una SPA estática, funciona en:
 
 ## 🧪 Testing y debugging
 
+### **Debugging en producción**
+En los ambientes deployados (`sso-dev.jeivian.com` y `sso.jeivian.com`) solo tienes:
+- ✅ **Logs en consola** del navegador (F12)
+- ✅ **Auto-redirect** automático
+- ✅ **Banner de carga** únicamente
+
 ### **Modo testing local**
+Para debugging completo, ejecuta localmente:
 ```bash
 VITE_ENV=testing npm run dev
 ```
@@ -264,15 +257,6 @@ VITE_ENV=testing npm run dev
 - 🔍 **Logs detallados** en pantalla
 - 🔍 **Botones manuales** para cada acción
 - 🔍 **Información de sesión** visible
-
-### **URLs de testing**
-```bash
-# Testing local
-http://localhost:5173/?target=http://localhost:3000&env=testing
-
-# Testing en Cloudflare
-https://sso-dev.jeivian.com/?target=http://localhost:3000&env=testing
-```
 
 ### **Logs útiles**
 ```javascript
@@ -303,7 +287,7 @@ if (!localStorage.getItem('access_token')) {
 
 ### **3. Hub SSO maneja autenticación**
 ```
-Hub SSO → Microsoft Azure AD → OAuth 2.0 + PKCE
+Hub SSO → Supabase → Microsoft Azure AD → OAuth 2.0 + PKCE
 ```
 
 ### **4. Usuario regresa con tokens**
