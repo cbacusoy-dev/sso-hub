@@ -143,12 +143,41 @@ function getTarget() {
 
 // Destino efectivo: usa ?target= si existe; si no, usa fallback según entorno
 function getEffectiveTarget() {
+    const params = new URLSearchParams(location.search)
+    const rawTarget = params.get('target')
+    
+    // 🔍 DEBUG: Log detallado para diagnosticar el bug
+    log(`🎯 DEBUG getEffectiveTarget():`)
+    log(`  - URL actual: ${location.href}`)
+    log(`  - Parámetro target: "${rawTarget}"`)
+    log(`  - Ambiente: ${CONFIG.ENV}`)
+    
     const t = getTarget()
-    if (t) return t
+    log(`  - getTarget() resultado: "${t}"`)
+    
+    if (t) {
+        log(`  - ✅ Usando target de URL: ${t}`)
+        return t
+    }
+    
+    // 🔄 RECUPERAR TARGET: Si no hay target en URL, buscar en localStorage
+    const backupTarget = localStorage.getItem('sso_target_backup')
+    if (backupTarget) {
+        log(`  - 🔄 Target recuperado de backup: "${backupTarget}"`)
+        const validatedBackup = validateTarget(backupTarget, false)
+        if (validatedBackup) {
+            // Limpiar backup después de usarlo
+            localStorage.removeItem('sso_target_backup')
+            log(`  - ✅ Usando target recuperado: ${validatedBackup}`)
+            return validatedBackup
+        }
+    }
     
     // Fallback según entorno
     const fallback = CONFIG.ENV === 'production' ? CONSTANTS.FALLBACK_TARGET_PROD : CONSTANTS.FALLBACK_TARGET_DEV
-    return validateTarget(fallback, false)
+    const validatedFallback = validateTarget(fallback, false)
+    log(`  - ❌ Sin target válido, usando fallback: ${validatedFallback}`)
+    return validatedFallback
 }
 
 // ==========================================
@@ -177,15 +206,31 @@ async function getCurrentSession() {
     return `${location.origin}${location.pathname}`
   }
 
-  // Limpieza de verifiers PKCE antiguos para evitar desajustes
+  // Limpieza completa para logout
+  function cleanupStorageComplete() {
+    try {
+        // 🧹 LIMPIEZA COMPLETA: Para logout únicamente
+        localStorage.clear()
+        sessionStorage.clear()
+        ok('Storage limpiado completamente')
+    } catch (_) { }
+  }
+
+  // Limpieza selectiva para PKCE (preserva sso_target_backup)
   function cleanupPkceStale() {
     try {
         const keys = []
-      for (let i = 0; i < localStorage.length; i++) {
+        for (let i = 0; i < localStorage.length; i++) {
             const k = localStorage.key(i) || ''
-            if (/pkce|code_verifier|verifier/i.test(k)) keys.push(k)
-      }
+            // Limpiar tokens PKCE y Supabase, PERO preservar sso_target_backup
+            if (/pkce|code_verifier|verifier|sb-/i.test(k) && k !== 'sso_target_backup') {
+                keys.push(k)
+            }
+        }
         keys.forEach(k => localStorage.removeItem(k))
+        if (keys.length > 0) {
+            log(`🧹 Limpieza PKCE: ${keys.length} items eliminados`)
+        }
     } catch (_) { }
   }
 
@@ -200,6 +245,13 @@ async function getCurrentSession() {
 
   async function ensureLogin() {
     const target = getEffectiveTarget()
+    
+    // 💾 PRESERVAR TARGET: Guardar en localStorage antes de ir a Microsoft
+    if (target) {
+        localStorage.setItem('sso_target_backup', target)
+        log(`💾 Target preservado: ${target}`)
+    }
+    
     const base = getHubBaseForRedirect()
     const redirectTo = target ? `${base}?target=${encodeURIComponent(target)}` : base
     // Limpiar verifiers antiguos y confiar en PKCE de la librería
@@ -225,6 +277,9 @@ async function handleLogout() {
     // Limpiar sesión local de Supabase
     await supabase.auth.signOut()
     ok('Sesión local cerrada.')
+    
+    // 🧹 LIMPIEZA COMPLETA: Usar función específica para logout
+    cleanupStorageComplete()
     
     // Obtener target de retorno (de donde vino el usuario)
     const target = getEffectiveTarget()
@@ -377,8 +432,26 @@ async function handleAutoRedirectMode() {
     // Autoredirigir si hay sesión
     const session = await getCurrentSession()
     if (session) {
-        await redirectToTarget(session)
-        return
+        try {
+            await redirectToTarget(session)
+            return
+        } catch (error) {
+            warn('Error en primer intento de redirección, reintentando...', error.message)
+            // Pequeña pausa y retry
+            setTimeout(async () => {
+                try {
+                    await redirectToTarget(session)
+                } catch (retryError) {
+                    err('Error en retry de redirección:', retryError.message)
+                    // Fallback: usar target por defecto
+                    const fallback = CONFIG.ENV === 'development' 
+                        ? CONSTANTS.FALLBACK_TARGET_DEV 
+                        : CONSTANTS.FALLBACK_TARGET_PROD
+                    window.location.href = fallback
+                }
+            }, 1000)
+            return
+        }
     }
 
     // Sin sesión: intentar login con cooldown
