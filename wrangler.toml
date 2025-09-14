@@ -1,0 +1,16 @@
+name = "hub-sso-dev"
+main = "worker.js"
+assets = { directory = "./dist", binding = "ASSETS" }
+compatibility_date = "2025-09-14"
+
+[env.dev]
+name = "hub-sso-dev"
+routes = [
+  { pattern = "sso-dev.jeivian.com", custom_domain = true }
+]
+
+[env.dev.vars]
+VITE_ENV = "development"
+VITE_BUILD = "dev-cloudflare"
+
+

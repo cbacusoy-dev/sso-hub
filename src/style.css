@@ -1,0 +1,183 @@
+ :root {
+   --bg: #0b1020;
+   --fg: #cde3ff;
+   --muted: #9cb6d6;
+   --ok: #28a745;
+   --err: #ff4d4f;
+   --warn: #ffbf00;
+   --card: #0f1730;
+ }
+
+ body {
+   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+   margin: 24px;
+   color: #1a2235;
+ }
+
+ h1 {
+   margin: 0 0 12px;
+ }
+
+ .grid {
+   display: grid;
+   grid-template-columns: 1fr;
+   gap: 14px;
+   max-width: 980px;
+ }
+
+ .card {
+   background: #fff;
+   border: 1px solid #e6ecf5;
+   border-radius: 10px;
+   padding: 14px;
+ }
+
+ .muted {
+   color: #5b6b84;
+   font-size: 12px;
+ }
+
+ label {
+   font-weight: 600;
+ }
+
+ input[type=text] {
+   width: 100%;
+   padding: 10px;
+   border: 1px solid #d3dbe7;
+   border-radius: 8px;
+ }
+
+ button {
+   padding: 8px 12px;
+   border: 1px solid #d3dbe7;
+   background: #fff;
+   border-radius: 8px;
+   cursor: pointer;
+ }
+
+ button.primary {
+   background: #1f6feb;
+   color: #fff;
+   border-color: #1f6feb;
+ }
+
+ button.ghost {
+   background: transparent;
+ }
+
+ .row {
+   display: flex;
+   gap: 8px;
+   align-items: center;
+   flex-wrap: wrap;
+ }
+
+ .stack {
+   display: flex;
+   flex-direction: column;
+   gap: 10px;
+ }
+
+ .kvs {
+   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+   font-size: 12px;
+   background: #f6f8fb;
+   border: 1px solid #e6ecf5;
+   border-radius: 8px;
+   padding: 10px;
+ }
+
+ .badge {
+   display: inline-block;
+   padding: 2px 8px;
+   border-radius: 999px;
+   font-size: 12px;
+   border: 1px solid #d3dbe7;
+ }
+
+ .ok {
+   color: var(--ok);
+   border-color: var(--ok);
+ }
+
+ .err {
+   color: var(--err);
+   border-color: var(--err);
+ }
+
+ .warn {
+   color: var(--warn);
+   border-color: var(--warn);
+ }
+
+ .log {
+   white-space: pre-wrap;
+   background: var(--bg);
+   color: var(--fg);
+   padding: 12px;
+   border-radius: 8px;
+   font-size: 12px;
+   height: 260px;
+   overflow: auto;
+ }
+
+ .section-title {
+   margin: 0 0 6px;
+   font-size: 13px;
+   color: #374562;
+   font-weight: 700;
+   text-transform: uppercase;
+   letter-spacing: .03em;
+ }
+
+ .hr {
+   height: 1px;
+   background: #e6ecf5;
+   margin: 8px 0;
+ }
+
+ .token {
+   filter: blur(6px);
+ }
+
+.token.reveal {
+  filter: none;
+}
+
+/* Headless Banner Styles */
+.sso-headless-banner {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  padding: 32px;
+  text-align: center;
+  gap: 24px;
+}
+
+.sso-headless-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a2235;
+  line-height: 1.3;
+}
+
+.sso-headless-loader {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e6ecf5;
+  border-top: 3px solid #1f6feb;
+  border-radius: 50%;
+  animation: sso-spin 1s linear infinite;
+}
+
+@keyframes sso-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
