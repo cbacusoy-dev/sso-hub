@@ -14,7 +14,7 @@
 1. **Cuenta de Cloudflare** con Workers habilitado
 2. **Dominio configurado** en Cloudflare DNS (ej: `sso-dev.example.com`)
 3. **Node.js** instalado (versión 16 o superior)
-4. **Supabase ANON Key** de tu proyecto de Supabase
+4. **Proyecto de Supabase** configurado con OAuth (opcional si usas el existente)
 
 ## 🔧 Instalación y configuración
 
@@ -34,15 +34,18 @@ Esto abrirá tu navegador para autenticar con tu cuenta de Cloudflare.
 wrangler whoami
 ```
 
-## 🔐 Configurar secretos
+## 🔐 Configuración de Supabase
 
-El Hub SSO necesita tu **Supabase ANON Key** como secreto:
+El Hub SSO usa la **Supabase ANON Key** que está **hardcodeada** en el código fuente (`src/main.js`):
 
-```bash
-wrangler secret put VITE_SUPABASE_ANON --env dev
+```javascript
+const CONFIG = {
+  SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || 'https://login.jeivian.com',
+  SUPABASE_ANON: import.meta.env.VITE_SUPABASE_ANON || 'tu-anon-key-aqui'
+}
 ```
 
-Cuando te pida el valor, ingresa tu ANON key de Supabase.
+**⚠️ Importante**: La ANON key es **pública por diseño** y se incluye en el JavaScript compilado. No es necesario configurarla como secreto en Cloudflare.
 
 ## 🚀 Deploy del Hub SSO
 
@@ -184,10 +187,8 @@ wrangler login
 ### Error: "Custom domain not configured"
 Verifica que tu dominio esté configurado en Cloudflare DNS y apunte a Cloudflare.
 
-### Error: "Secret not found"
-```bash
-wrangler secret put VITE_SUPABASE_ANON --env dev
-```
+### Error: "Supabase connection failed"
+Verifica que la ANON key esté correctamente configurada en el código fuente.
 
 ### Error: "Build failed"
 ```bash
