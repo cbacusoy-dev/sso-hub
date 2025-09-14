@@ -12,9 +12,9 @@
 ## 📋 Prerrequisitos
 
 1. **Cuenta de Cloudflare** con Workers habilitado
-2. **Dominio configurado**: `sso-dev.jeivian.com` debe apuntar a Cloudflare DNS
-3. **Node.js** instalado (ya lo tienes)
-4. **Supabase ANON Key** de tu dashboard de Supabase
+2. **Dominio configurado** en Cloudflare DNS (ej: `sso-dev.example.com`)
+3. **Node.js** instalado (versión 16 o superior)
+4. **Supabase ANON Key** de tu proyecto de Supabase
 
 ## 🔧 Instalación y configuración
 
@@ -56,7 +56,7 @@ npm run build
 wrangler deploy --env dev
 ```
 
-¡Eso es todo! Tu Hub SSO estará disponible en `https://sso-dev.jeivian.com`
+¡Eso es todo! Tu Hub SSO estará disponible en tu dominio configurado
 
 ## 🧪 Probar el Hub SSO
 
@@ -64,22 +64,17 @@ Una vez deployado, puedes probar estas URLs:
 
 ### Login desde app local
 ```
-https://sso-dev.jeivian.com/?target=http://localhost:3000
+https://tu-dominio-sso.com/?target=http://localhost:3000
 ```
 
 ### Logout y regreso a app local
 ```
-https://sso-dev.jeivian.com/?logout=true&target=http://localhost:3000
-```
-
-### Modo testing (UI completa)
-```
-https://sso-dev.jeivian.com/?target=http://localhost:3000&env=testing
+https://tu-dominio-sso.com/?logout=true&target=http://localhost:3000
 ```
 
 ### Solo el Hub (fallback automático)
 ```
-https://sso-dev.jeivian.com/
+https://tu-dominio-sso.com/
 ```
 
 ## ⚙️ Configuración por ambiente
@@ -129,7 +124,7 @@ compatibility_date = "2025-09-14"
 [env.dev]
 name = "hub-sso-dev"
 routes = [
-  { pattern = "sso-dev.jeivian.com", custom_domain = true }
+  { pattern = "sso-dev.example.com", custom_domain = true }
 ]
 
 [env.dev.vars]
@@ -187,7 +182,7 @@ wrangler login
 ```
 
 ### Error: "Custom domain not configured"
-Verifica que `sso-dev.jeivian.com` esté en tu Cloudflare DNS apuntando a Cloudflare.
+Verifica que tu dominio esté configurado en Cloudflare DNS y apunte a Cloudflare.
 
 ### Error: "Secret not found"
 ```bash
@@ -201,9 +196,9 @@ npm run build
 ```
 
 ### Hub SSO no funciona
-1. Verifica que el dominio esté configurado
+1. Verifica que el dominio esté configurado correctamente
 2. Revisa los logs: `wrangler tail --env dev`
-3. Prueba en modo testing: `?env=testing`
+3. Confirma que el build se completó sin errores
 
 ## 🎯 Integración con tus apps
 
@@ -211,32 +206,25 @@ Una vez deployado, tus apps locales pueden usar el Hub SSO:
 
 ### Login
 ```javascript
-// En tu app local (localhost:3000)
+// En tu aplicación
 function login() {
-    window.location.href = 'https://sso-dev.jeivian.com/?target=' + 
-        encodeURIComponent(window.location.origin)
+    const ssoUrl = 'https://tu-dominio-sso.com'
+    const targetUrl = encodeURIComponent(window.location.origin)
+    window.location.href = `${ssoUrl}/?target=${targetUrl}`
 }
 ```
 
 ### Logout
 ```javascript
-// En tu app local
+// En tu aplicación
 function logout() {
     // Limpiar tokens locales
     localStorage.clear()
     
     // Ir al Hub SSO para logout completo
-    window.location.href = 'https://sso-dev.jeivian.com/?logout=true&target=' + 
-        encodeURIComponent(window.location.origin + '/login')
-}
-```
-
-### Testing/Debug
-```javascript
-// Para debugging con UI completa
-function loginDebug() {
-    window.location.href = 'https://sso-dev.jeivian.com/?target=' + 
-        encodeURIComponent(window.location.origin) + '&env=testing'
+    const ssoUrl = 'https://tu-dominio-sso.com'
+    const targetUrl = encodeURIComponent(window.location.origin + '/login')
+    window.location.href = `${ssoUrl}/?logout=true&target=${targetUrl}`
 }
 ```
 
@@ -248,21 +236,21 @@ Puedes configurar múltiples ambientes en `wrangler.toml`:
 # Desarrollo
 [env.dev]
 name = "hub-sso-dev"
-routes = [{ pattern = "sso-dev.jeivian.com", custom_domain = true }]
+routes = [{ pattern = "sso-dev.example.com", custom_domain = true }]
 [env.dev.vars]
 VITE_ENV = "development"
 
 # Producción
 [env.prod]
 name = "hub-sso-prod"
-routes = [{ pattern = "sso.jeivian.com", custom_domain = true }]
+routes = [{ pattern = "sso.example.com", custom_domain = true }]
 [env.prod.vars]
 VITE_ENV = "production"
 
-# Testing
+# Testing (opcional)
 [env.test]
 name = "hub-sso-test"
-routes = [{ pattern = "sso-test.jeivian.com", custom_domain = true }]
+routes = [{ pattern = "sso-test.example.com", custom_domain = true }]
 [env.test.vars]
 VITE_ENV = "testing"
 ```
