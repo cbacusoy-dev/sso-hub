@@ -142,7 +142,7 @@ export function configureUIElements(config) {
   } catch (_) { }
 }
 
-export async function setupUI(showFullUI, config, uiHandlers) {
+export async function setupUI(showFullUI, config, uiHandlers, isLogout = false) {
   if (showFullUI) {
     // Modo TESTING: UI completa con botones
     createFullUI()
@@ -163,6 +163,7 @@ export async function setupUI(showFullUI, config, uiHandlers) {
     }
   } else {
     // Modo DEVELOPMENT/PRODUCTION: solo banner, auto-redirect
-    createHeadlessBanner('Iniciando sesión con Microsoft…')
+    const message = isLogout ? 'Cerrando sesión...' : 'Iniciando sesión con Microsoft…'
+    createHeadlessBanner(message)
   }
 }

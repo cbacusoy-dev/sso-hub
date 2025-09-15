@@ -292,8 +292,12 @@ async function handleLogout() {
         return
     }
     
-    // En modo auto-redirect: redirigir de vuelta a la app
+    // En modo auto-redirect: actualizar banner y redirigir
     if (target) {
+        // Actualizar banner para mostrar que se está redirigiendo
+        const { createHeadlessBanner } = await import('./ui.js')
+        createHeadlessBanner('Sesión cerrada. Regresando...')
+        
         log(`Redirigiendo de vuelta a: ${target}`)
         // Pequeño delay para que se vea el mensaje
         setTimeout(() => {
@@ -322,11 +326,24 @@ async function redirectToTarget(session) {
 
     ok('Redirigiendo a target con tokens…')
 
+    // Si estamos en modo auto-redirect, actualizar banner
+    if (shouldAutoRedirect()) {
+        try {
+            const { createHeadlessBanner } = await import('./ui.js')
+            createHeadlessBanner('Sesión iniciada. Regresando...')
+        } catch (_) { }
+    }
+
     // Usar hash fragment (#) por seguridad: no se envía al servidor ni aparece en logs
     const url = `${target}#access_token=${encodeURIComponent(at)}&refresh_token=${encodeURIComponent(rt)}`
 
-    history.replaceState({}, document.title, location.pathname)
-    window.location.replace(url)
+    log(`Target final: ${target}`)
+    
+    // Pequeño delay para que se vea el mensaje
+    setTimeout(() => {
+        history.replaceState({}, document.title, location.pathname)
+        window.location.replace(url)
+    }, 1000)
 }
 
 // ==========================================
@@ -474,19 +491,21 @@ function handleTestingMode() {
 // ==========================================
 
 async function bootstrap() {
+    // Verificar si es una petición de logout PRIMERO
+    const params = new URLSearchParams(location.search)
+    const isLogout = params.get('logout') === 'true'
+    
     // Configurar UI según modo
     const uiHandlers = setupUIHandlers()
 
-    await setupUI(shouldShowFullUI(), CONFIG, uiHandlers)
+    await setupUI(shouldShowFullUI(), CONFIG, uiHandlers, isLogout)
 
     // Lógica de autenticación (común para todos los ambientes)
     ok('Cargando Hub…')
     log(`Ambiente: ${CONFIG.ENV.toUpperCase()}`)
     
-    // Verificar si es una petición de logout
-    const params = new URLSearchParams(location.search)
-    if (params.get('logout') === 'true') {
-        log('Petición de logout detectada')
+    if (isLogout) {
+        ok('Cerrando sesión...')
         await handleLogout()
         return
     }
