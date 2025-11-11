@@ -25,6 +25,10 @@ const CONSTANTS = {
     /^https?:\/\/localhost(?:[:/].*)?$/,
     /^https?:\/\/127\.0\.0\.1(?:[:/].*)?$/,
     /^https?:\/\/\[::1\](?:[:/].*)?$/,
+    // Redes privadas para desarrollo local
+    /^https?:\/\/192\.168\.\d{1,3}\.\d{1,3}(?:[:/].*)?$/,  // 192.168.x.x
+    /^https?:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:[:/].*)?$/,  // 10.x.x.x
+    /^https?:\/\/172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}(?:[:/].*)?$/,  // 172.16.x.x - 172.31.x.x
     /^https?:\/\/([a-z0-9-]+\.)*jeivian\.com(\/.*)?$/,
   ],
 
@@ -34,7 +38,7 @@ const CONSTANTS = {
   ],
 
     // Fallback targets (valores hardcodeados)
-    FALLBACK_TARGET_DEV: 'http://localhost:3000',
+  FALLBACK_TARGET_DEV: 'http://localhost:3000',
   FALLBACK_TARGET_PROD: 'https://app.jeivian.com'
 }
 
